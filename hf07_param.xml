@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>const int N = 3;
+const int B = 6;
+int[0,N-1] getter;
+broadcast chan request;
+urgent chan data[N];
+int[0,1] measurements[N];</declaration>
+	<template>
+		<name>Sensor</name>
+		<parameter>int[0,N-1] pid</parameter>
+		<declaration>int[0,B] battery = B;
+clock timer;
+int[-1,N-1] counter = -1;
+int[0,1] measurement;</declaration>
+		<location id="id0" x="884" y="382">
+			<name x="874" y="348">Init</name>
+			<urgent/>
+		</location>
+		<location id="id1" x="884" y="127">
+			<name x="850" y="84">Requesting</name>
+			<label kind="invariant" x="850" y="101">timer &lt;= 1</label>
+		</location>
+		<location id="id2" x="1198" y="577">
+			<name x="1164" y="594">Measuring</name>
+			<label kind="invariant" x="1164" y="611">timer &lt;= 1</label>
+		</location>
+		<location id="id3" x="637" y="526">
+			<name x="569" y="534">Charging</name>
+			<label kind="invariant" x="569" y="551">timer &lt;= 1</label>
+		</location>
+		<location id="id4" x="1198" y="382">
+			<name x="1215" y="390">WaitForRequest</name>
+			<label kind="invariant" x="1215" y="407">timer &lt;= 1</label>
+		</location>
+		<location id="id5" x="1377" y="204">
+			<name x="1394" y="195">ToSend</name>
+			<urgent/>
+		</location>
+		<location id="id6" x="637" y="382">
+			<name x="603" y="348">IsCharged</name>
+			<urgent/>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id3"/>
+			<label kind="guard" x="671" y="425">battery &lt; B</label>
+			<nail x="680" y="459"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id0"/>
+			<label kind="guard" x="654" y="365">battery == B</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id6"/>
+			<label kind="guard" x="527" y="416">timer &gt;= 1</label>
+			<label kind="assignment" x="527" y="433">timer = 0,
+battery++</label>
+			<nail x="595" y="459"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="773" y="450">battery &lt; B</label>
+			<label kind="assignment" x="773" y="467">timer = 0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="guard" x="1113" y="364">timer &gt;= 1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="1198" y="228">data[pid]!</label>
+			<label kind="assignment" x="1198" y="245">battery--,
+measurements[pid] =
+measurement</label>
+			<nail x="1198" y="204"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="1377" y="288">battery &gt;= 2</label>
+			<label kind="synchronisation" x="1377" y="305">request?</label>
+			<label kind="assignment" x="1377" y="322">battery--</label>
+			<nail x="1377" y="381"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="guard" x="1198" y="475">timer &gt;= 1</label>
+			<label kind="assignment" x="1198" y="492">timer = 0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="select" x="952" y="535">my_measurement: int[0, 1]</label>
+			<label kind="guard" x="952" y="552">battery &gt;= 1 &amp;&amp; getter != pid</label>
+			<label kind="assignment" x="952" y="569">timer = 0,
+battery--,
+measurement =
+my_measurement</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="722" y="211">timer &gt;= 1</label>
+			<label kind="assignment" x="561" y="228">getter = getter == N-1 ? 0 : getter+1</label>
+			<nail x="799" y="238"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="select" x="969" y="42">i : int[0, N-1]</label>
+			<label kind="guard" x="969" y="59">battery &gt;= 1</label>
+			<label kind="synchronisation" x="969" y="76">data[i]?</label>
+			<label kind="assignment" x="969" y="93">counter++,
+battery--,
+measurement = measurements[i]</label>
+			<nail x="816" y="127"/>
+			<nail x="816" y="59"/>
+			<nail x="960" y="59"/>
+			<nail x="960" y="127"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="969" y="211">getter == pid &amp;&amp; battery &gt;= N+1</label>
+			<label kind="synchronisation" x="969" y="228">request!</label>
+			<label kind="assignment" x="969" y="245">battery = battery - 2, 
+timer = 0,
+counter = 0</label>
+			<nail x="969" y="238"/>
+		</transition>
+	</template>
+	<system>system Sensor;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt;forall(i : int[0,N-1])(Sensor(i).battery == 0)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt;exists(i : int[0,N-1])(Sensor(i).Init &amp;&amp; Sensor(i).counter == 0)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt;exists(i : int[0,N-1])(Sensor(i).Init &amp;&amp; Sensor(i).counter == N-1)</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
