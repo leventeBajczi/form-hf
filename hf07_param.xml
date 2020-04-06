@@ -54,11 +54,13 @@ measurements[pid] = measurement</label>
 			<source ref="id2"/>
 			<target ref="id3"/>
 			<label kind="guard" x="1266" y="799">timer &gt;= 1 &amp;&amp; battery &lt; 2</label>
+			<label kind="assignment" x="1266" y="816">timer = 0</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id3"/>
 			<label kind="guard" x="935" y="544">battery &lt; B</label>
+			<label kind="assignment" x="935" y="561">timer = 0</label>
 			<nail x="960" y="646"/>
 		</transition>
 		<transition>
@@ -70,8 +72,7 @@ measurements[pid] = measurement</label>
 			<source ref="id3"/>
 			<target ref="id6"/>
 			<label kind="guard" x="816" y="697">timer &gt;= 1</label>
-			<label kind="assignment" x="816" y="714">timer = 0,
-battery++</label>
+			<label kind="assignment" x="816" y="714">battery++</label>
 			<nail x="867" y="646"/>
 		</transition>
 		<transition>
